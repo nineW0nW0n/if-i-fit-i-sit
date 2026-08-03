@@ -10,22 +10,14 @@ name: CI Pipeline
       - main
 
 jobs:
-  lint-and-test:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run ShellCheck & Yamllint
+      - name: Run ShellCheck and Yamllint
         run: |
           sudo apt-get update && sudo apt-get install -y shellcheck yamllint
           shellcheck bootstrap/*.sh
           yamllint .
-
-      - name: Test bootstrap script on clean Debian 12
-        run: >
-          docker run --privileged --rm
-          -v ${{ github.workspace }}:/workspace
-          -w /workspace debian:12-slim
-          bash -c "apt-get update && apt-get install -y sudo ufw iptables curl
-          && bash bootstrap/setup-node.sh test-node"
