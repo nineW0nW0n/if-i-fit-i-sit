@@ -1,10 +1,13 @@
+---
 name: CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   lint-and-test:
@@ -21,7 +24,8 @@ jobs:
 
       - name: Test bootstrap script on clean Debian 12
         run: |
-          docker run --privileged --rm -v ${{ github.workspace }}:/workspace -w /workspace debian:12-slim bash -c "
-            apt-get update && apt-get install -y sudo ufw iptables curl
-            bash bootstrap/setup-node.sh test-node
-          "
+          docker run --privileged --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace debian:12-slim \
+            bash -c "apt-get update && apt-get install -y sudo ufw iptables curl && bash bootstrap/setup-node.sh test-node"
+            
