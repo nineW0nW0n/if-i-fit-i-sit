@@ -1,39 +1,28 @@
-name: Lint & Validate Infrastructure Code
+name: CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  lint-scripts:
-    name: Lint Shell Scripts
+  lint-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
-        with:
-          scandir: './bootstrap'
-
-  lint-yaml:
-    name: Validate YAML Syntax
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Install yamllint
-        run: pip install yamllint
-
-      - name: Run yamllint
+      - name: Run ShellCheck & Yamllint
         run: |
-          yamllint -d "{extends: relaxed, rules: {line-length: disable}}" .
+          sudo apt-get update && sudo apt-get install -y shellcheck yamllint
+          shellcheck bootstrap/*.sh
+          yamllint .
+
+      # ACTUALLY EXECUTE THE SCRIPT IN A DEBIAN CONTAINER
+      - name: Test bootstrap script on clean Debian 12
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace debian:12-slim bash -c "
+            apt-get update && apt-get install -y sudo ufw iptables curl
+            bash bootstrap/setup-node.sh test-node
+          "
