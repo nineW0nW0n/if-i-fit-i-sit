@@ -19,10 +19,9 @@ jobs:
           shellcheck bootstrap/*.sh
           yamllint .
 
-      # ACTUALLY EXECUTE THE SCRIPT IN A DEBIAN CONTAINER
       - name: Test bootstrap script on clean Debian 12
         run: |
-          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace debian:12-slim bash -c "
+          docker run --privileged --rm -v ${{ github.workspace }}:/workspace -w /workspace debian:12-slim bash -c "
             apt-get update && apt-get install -y sudo ufw iptables curl
             bash bootstrap/setup-node.sh test-node
           "
