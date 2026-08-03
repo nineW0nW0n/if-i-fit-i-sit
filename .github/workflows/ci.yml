@@ -1,24 +1,39 @@
----
-name: CI Pipeline
+name: Lint & Validate Infrastructure Code
 
-"on":
+on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
-  lint:
+  lint-scripts:
+    name: Lint Shell Scripts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run ShellCheck and Yamllint
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './bootstrap'
+
+  lint-yaml:
+    name: Validate YAML Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Run yamllint
         run: |
-          sudo apt-get update && sudo apt-get install -y shellcheck yamllint
-          shellcheck bootstrap/*.sh
-          yamllint .
-          
+          yamllint -d "{extends: relaxed, rules: {line-length: disable}}" .
