@@ -13,12 +13,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Kubernetes Context
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
 
       - name: Verify Cluster Connection
         run: |
           kubectl get nodes -o wide
           kubectl cluster-info
+
