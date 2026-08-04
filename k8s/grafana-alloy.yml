@@ -10,7 +10,7 @@ metadata:
   name: alloy-config
   namespace: monitoring
 data:
-  config.alloy: |
+  config.alloy.template: |
     logging {
       level  = "info"
       format = "logfmt"
@@ -25,10 +25,10 @@ data:
 
     prometheus.remote_write "grafana_cloud" {
       endpoint {
-        url = sys.env("GCM_URL")
+        url = "${GCM_URL}"
         basic_auth {
-          username = sys.env("GCM_USER")
-          password = sys.env("GCM_TOKEN")
+          username = "${GCM_USER}"
+          password = "${GCM_TOKEN}"
         }
       }
     }
@@ -50,9 +50,15 @@ spec:
       containers:
         - name: alloy
           image: grafana/alloy:v1.0.0
-          args:
-            - run
-            - /etc/alloy/config.alloy
+          command:
+            - /bin/sh
+            - -c
+            - |
+              sed -e "s|\${GCM_URL}|$GCM_URL|g" \
+                  -e "s|\${GCM_USER}|$GCM_USER|g" \
+                  -e "s|\${GCM_TOKEN}|$GCM_TOKEN|g" \
+                  /etc/alloy/template/config.alloy.template > /tmp/config.alloy && \
+              alloy run /tmp/config.alloy
           env:
             - name: GCM_URL
               valueFrom:
@@ -71,7 +77,7 @@ spec:
                   key: GCM_TOKEN
           volumeMounts:
             - name: config
-              mountPath: /etc/alloy
+              mountPath: /etc/alloy/template
       volumes:
         - name: config
           configMap:
