@@ -57,7 +57,8 @@ spec:
               sed -e "s|\${GCM_URL}|$GCM_URL|g" \
                   -e "s|\${GCM_USER}|$GCM_USER|g" \
                   -e "s|\${GCM_TOKEN}|$GCM_TOKEN|g" \
-                  /etc/alloy/template/config.alloy.template > /tmp/config.alloy && \
+                  /etc/alloy/template/config.alloy.template \
+                  > /tmp/config.alloy && \
               alloy run /tmp/config.alloy
           env:
             - name: GCM_URL
