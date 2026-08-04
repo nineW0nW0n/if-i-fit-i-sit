@@ -53,7 +53,6 @@ spec:
           args:
             - run
             - /etc/alloy/config.alloy
-            - --stability.level=experimental
           env:
             - name: GCM_URL
               valueFrom:
