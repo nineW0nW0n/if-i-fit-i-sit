@@ -5,6 +5,9 @@ name: Deploy to K3s Cluster
   push:
     branches:
       - main
+    paths:
+      - 'k8s/**'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   deploy:
@@ -24,3 +27,18 @@ jobs:
         run: |
           kubectl get nodes -o wide
           kubectl cluster-info
+
+      - name: Create or Update Grafana Credentials Secret
+        run: |
+          kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+          
+          kubectl create secret generic grafana-cloud-credentials \
+            --namespace=monitoring \
+            --from-literal=GCM_URL="${{ secrets.GCM_URL }}" \
+            --from-literal=GCM_USER="${{ secrets.GCM_USER }}" \
+            --from-literal=GCM_TOKEN="${{ secrets.GCM_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy Kubernetes Manifests
+        run: |
+          kubectl apply -f k8s/
