@@ -20,7 +20,20 @@ data:
 
     prometheus.scrape "alloy" {
       targets    = prometheus.exporter.unix.node_exporter.targets
+      forward_to = [prometheus.relabel.add_node.receiver]
+    }
+
+    prometheus.relabel "add_node" {
       forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+
+      rule {
+        target_label = "node"
+        replacement  = "${NODE_NAME}"
+      }
+      rule {
+        target_label = "instance"
+        replacement  = "${NODE_NAME}"
+      }
     }
 
     prometheus.remote_write "grafana_cloud" {
@@ -57,10 +70,15 @@ spec:
               sed -e "s|\${GCM_URL}|$GCM_URL|g" \
                   -e "s|\${GCM_USER}|$GCM_USER|g" \
                   -e "s|\${GCM_TOKEN}|$GCM_TOKEN|g" \
+                  -e "s|\${NODE_NAME}|$NODE_NAME|g" \
                   /etc/alloy/template/config.alloy.template \
                   > /tmp/config.alloy && \
               alloy run /tmp/config.alloy
           env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: GCM_URL
               valueFrom:
                 secretKeyRef:
