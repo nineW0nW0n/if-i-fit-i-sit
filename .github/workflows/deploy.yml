@@ -18,6 +18,7 @@ jobs:
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }}
+          kubeconfig-encoding: base64
 
       - name: Verify Cluster Connection
         run: |
