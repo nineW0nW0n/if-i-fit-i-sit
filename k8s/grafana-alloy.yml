@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-config
+  namespace: monitoring
+data:
+  config.alloy: |
+    logging {
+      level = "info"
+      format = "logfmt"
+    }
+
+    prometheus.exporter.unix "node_exporter" { }
+
+    prometheus.scrape "alloy" {
+      targets    = prometheus.exporter.unix.node_exporter.targets
+      forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+    }
+
+    prometheus.remote_write "grafana_cloud" {
+      endpoint {
+        url = sys.env("GCM_URL")
+        basic_auth {
+          username = sys.env("GCM_USER")
+          password = sys.env("GCM_TOKEN")
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alloy
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: alloy
+  template:
+    metadata:
+      labels:
+        app: alloy
+    spec:
+      containers:
+        - name: alloy
+          image: grafana/alloy:v1.0.0
+          args:
+            - run
+            - /etc/alloy/config.alloy
+          env:
+            - name: GCM_URL
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-credentials
+                  key: GCM_URL
+            - name: GCM_USER
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-credentials
+                  key: GCM_USER
+            - name: GCM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-credentials
+                  key: GCM_TOKEN
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alloy
+      volumes:
+        - name: config
+          configMap:
+            name: alloy-config
