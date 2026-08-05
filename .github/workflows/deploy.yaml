@@ -47,7 +47,7 @@ jobs:
 
           kubectl create secret generic cloudflare-tunnel-token \
             --namespace=kube-system \
-            --from-literal=TUNNEL_TOKEN="${{ secrets.CF_TUNNEL_TOKEN }}" \
+            --from-literal=CLF_TUN_TKN="${{ secrets.CLF_TUN_TKN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy All Kubernetes Manifests
