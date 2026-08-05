@@ -28,8 +28,9 @@ jobs:
           kubectl get nodes -o wide
           kubectl cluster-info
 
-      - name: Create or Update Grafana Credentials Secret
+      - name: Create Namespaces & Secrets
         run: |
+          # Monitoring Secret
           kubectl create namespace monitoring \
             --dry-run=client -o yaml | kubectl apply -f -
 
@@ -40,6 +41,15 @@ jobs:
             --from-literal=GCM_TOKEN="${{ secrets.GCM_TOKEN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Deploy Kubernetes Manifests
+          # Cloudflare Tunnel Secret
+          kubectl create namespace kube-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic cloudflare-tunnel-token \
+            --namespace=kube-system \
+            --from-literal=TUNNEL_TOKEN="${{ secrets.CF_TUNNEL_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy All Kubernetes Manifests
         run: |
-          kubectl apply -f k8s/
+          kubectl apply -R -f k8s/

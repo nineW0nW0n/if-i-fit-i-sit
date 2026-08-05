@@ -18,6 +18,7 @@ jobs:
 
       - name: Run ShellCheck and Yamllint
         run: |
-          sudo apt-get update && sudo apt-get install -y shellcheck yamllint
+          sudo apt-get update
+          sudo apt-get install -y shellcheck yamllint
           shellcheck bootstrap/*.sh
           yamllint .
