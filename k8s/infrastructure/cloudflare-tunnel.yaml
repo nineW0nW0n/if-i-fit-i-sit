@@ -22,7 +22,7 @@ spec:
             - --no-autoupdate
             - run
           env:
-            - name: CLF_TUN_TKN
+            - name: TUNNEL_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: cloudflare-tunnel-token
