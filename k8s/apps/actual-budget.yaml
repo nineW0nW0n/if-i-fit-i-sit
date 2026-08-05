@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -58,7 +59,7 @@ metadata:
   namespace: default
 spec:
   rules:
-    - host: budget.maybeit.work  # Traefik will catch traffic from Cloudflare here
+    - host: budget.maybeit.work  # Traefik route
       http:
         paths:
           - path: /
