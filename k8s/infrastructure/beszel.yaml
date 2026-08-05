@@ -1,0 +1,71 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beszel
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beszel
+  template:
+    metadata:
+      labels:
+        app: beszel
+    spec:
+      containers:
+        - name: beszel
+          image: henrygd/beszel:latest
+          ports:
+            - containerPort: 8090
+          volumeMounts:
+            - name: beszel-data
+              mountPath: /beszel_data
+      volumes:
+        - name: beszel-data
+          persistentVolumeClaim:
+            claimName: beszel-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beszel-pvc
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: beszel-service
+  namespace: monitoring
+spec:
+  selector:
+    app: beszel
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 8090
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: beszel-ingress
+  namespace: monitoring
+spec:
+  rules:
+    - host: beszel.maybeit.work
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: beszel-service
+                port:
+                  number: 8090
