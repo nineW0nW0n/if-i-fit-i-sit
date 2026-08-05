@@ -16,7 +16,11 @@ data:
       format = "logfmt"
     }
 
-    prometheus.exporter.unix "node_exporter" { }
+    prometheus.exporter.unix "node_exporter" {
+      rootfs_path = "/host/root"
+      procfs_path = "/host/proc"
+      sysfs_path  = "/host/sys"
+    }
 
     prometheus.scrape "alloy" {
       targets    = prometheus.exporter.unix.node_exporter.targets
@@ -60,6 +64,8 @@ spec:
       labels:
         app: alloy
     spec:
+      hostNetwork: true
+      hostPID: true
       containers:
         - name: alloy
           image: grafana/alloy:v1.0.0
@@ -97,7 +103,26 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/alloy/template
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+            - name: root
+              mountPath: /host/root
+              mountPropagation: HostToContainer
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: alloy-config
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: root
+          hostPath:
+            path: /
