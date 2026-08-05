@@ -1,0 +1,71 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actual-server
+  namespace: default
+spec:
+  replicas: 1 # Needs to be 1 because it uses a SQLite file to sync
+  selector:
+    matchLabels:
+      app: actual-server
+  template:
+    metadata:
+      labels:
+        app: actual-server
+    spec:
+      containers:
+      - name: actual-server
+        image: actualbudget/actual-server:latest
+        ports:
+        - containerPort: 5006
+        volumeMounts:
+        - name: actual-data
+          mountPath: /data
+      volumes:
+      - name: actual-data
+        persistentVolumeClaim:
+          claimName: actual-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: actual-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi # Very lightweight, 1GB is plenty
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: actual-service
+  namespace: default
+spec:
+  selector:
+    app: actual-server
+  ports:
+    - protocol: TCP
+      port: 5006
+      targetPort: 5006
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: actual-ingress
+  namespace: default
+spec:
+  rules:
+  - host: budget.maybeit.work # Traefik will catch traffic from Cloudflare here
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: actual-service
+            port:
+              number: 5006
