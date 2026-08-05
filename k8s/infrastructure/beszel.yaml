@@ -69,3 +69,39 @@ spec:
                 name: beszel-service
                 port:
                   number: 8090
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: beszel-agent
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: beszel-agent
+  template:
+    metadata:
+      labels:
+        app: beszel-agent
+    spec:
+      hostNetwork: true
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: beszel-agent
+          image: henrygd/beszel-agent:latest
+          env:
+            - name: LISTEN
+              value: "45876"
+            - name: TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: beszel-token
+                  key: TOKEN
+            - name: HUB_URL
+              value: "http://beszel-service:8090"

@@ -30,8 +30,13 @@ jobs:
 
       - name: Create Namespaces & Secrets
         run: |
-          # Monitoring Namespace
+          # Monitoring Namespace & Token Secret
           kubectl create namespace monitoring \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic beszel-token \
+            --namespace=monitoring \
+            --from-literal=TOKEN="${{ secrets.BESZEL_TKN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
           # Cloudflare Tunnel Secret
