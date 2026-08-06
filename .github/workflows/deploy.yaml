@@ -43,13 +43,6 @@ jobs:
             --from-literal=CLF_TUN_TKN="${{ secrets.CLF_TUN_TKN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Create or Update Tymeslot Secrets
-        run: |
-          kubectl create secret generic tymeslot-auth \
-          --namespace=default \
-          --from-literal=SECRET_KEY_BASE="${{ secrets.TYM_TKN }}" \
-          --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Deploy All Kubernetes Manifests
         run: |
           kubectl apply -R -f k8s/
