@@ -101,7 +101,7 @@ spec:
             - name: KEY
               valueFrom:
                 secretKeyRef:
-                  name: beszel-key
+                  name: beszel-token
                   key: KEY
             - name: TOKEN
               valueFrom:
