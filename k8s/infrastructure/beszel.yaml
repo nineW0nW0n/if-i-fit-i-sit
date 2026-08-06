@@ -101,6 +101,11 @@ spec:
             - name: KEY
               valueFrom:
                 secretKeyRef:
+                  name: beszel-key
+                  key: KEY
+            - name: TOKEN
+              valueFrom:
+                secretKeyRef:
                   name: beszel-token
                   key: TOKEN
             - name: HUB_URL

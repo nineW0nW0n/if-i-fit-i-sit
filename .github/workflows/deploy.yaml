@@ -36,8 +36,8 @@ jobs:
 
           kubectl create secret generic beszel-token \
             --namespace=monitoring \
-            --from-literal=KEY="${{ secrets.BESZEL_TKN }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
+            --from-literal=KEY="${{ secrets.BZL_KEY }}" \
+            --from-literal=TOKEN="${{ secrets.BZL_TKN }}" \
 
           # Cloudflare Tunnel Secret
           kubectl create namespace kube-system \
