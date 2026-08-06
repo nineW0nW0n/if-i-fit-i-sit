@@ -38,7 +38,7 @@ spec:
             - name: SIYUAN_ACCESS_CODE
               valueFrom:
                 secretKeyRef:
-                  name: siyuan-auth
+                  name: siyuan-his-auth
                   key: SYN_PWD
           args:
             - "serve"
@@ -137,7 +137,7 @@ spec:
             - name: SIYUAN_ACCESS_CODE
               valueFrom:
                 secretKeyRef:
-                  name: siyuan-auth
+                  name: siyuan-her-auth
                   key: SYN_PWD
           args:
             - "serve"
