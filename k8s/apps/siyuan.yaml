@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -6,7 +7,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path # Uses K3s default local path storage
+  storageClassName: local-path
   resources:
     requests:
       storage: 10Gi
@@ -29,35 +30,35 @@ spec:
         app: siyuan
     spec:
       containers:
-      - name: siyuan
-        image: b3log/siyuan:latest
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: SIYUAN_ACCESS_CODE
-          valueFrom:
-            secretKeyRef:
-              name: siyuan-auth
-              key: SYN_PWD
-        args:
-          - "--workspace=/siyuan/workspace/"
-          - "--accessAuthCode=$(SIYUAN_ACCESS_CODE)"
-        ports:
-        - containerPort: 6806
-          name: http
-        resources:
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-        volumeMounts:
-        - name: siyuan-storage
-          mountPath: /siyuan/workspace
+        - name: siyuan
+          image: b3log/siyuan:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SIYUAN_ACCESS_CODE
+              valueFrom:
+                secretKeyRef:
+                  name: siyuan-auth
+                  key: SYN_PWD
+          args:
+            - "--workspace=/siyuan/workspace/"
+            - "--accessAuthCode=$(SIYUAN_ACCESS_CODE)"
+          ports:
+            - containerPort: 6806
+              name: http
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 100m
+          volumeMounts:
+            - name: siyuan-storage
+              mountPath: /siyuan/workspace
       volumes:
-      - name: siyuan-storage
-        persistentVolumeClaim:
-          claimName: siyuan-pvc
+        - name: siyuan-storage
+          persistentVolumeClaim:
+            claimName: siyuan-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -83,13 +84,13 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
   rules:
-  - host: siyuan.maybeit.work
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: siyuan-service
-            port:
-              number: 80
+    - host: siyuan.maybeit.work
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: siyuan-service
+                port:
+                  number: 80
