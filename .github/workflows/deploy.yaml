@@ -42,6 +42,13 @@ jobs:
             --namespace=kube-system \
             --from-literal=CLF_TUN_TKN="${{ secrets.CLF_TUN_TKN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Create or Update SiYuan Secret
+        run: |
+          kubectl create secret generic siyuan-auth \
+          --namespace=default \
+          --from-literal=SYN_PWD="${{ secrets.SYN_PWD }}" \
+          --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy All Kubernetes Manifests
         run: |

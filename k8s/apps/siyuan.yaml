@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: siyuan-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path # Uses K3s default local path storage
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: siyuan
+  namespace: default
+  labels:
+    app: siyuan
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: siyuan
+  template:
+    metadata:
+      labels:
+        app: siyuan
+    spec:
+      containers:
+      - name: siyuan
+        image: b3log/siyuan:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SIYUAN_ACCESS_CODE
+          valueFrom:
+            secretKeyRef:
+              name: siyuan-auth
+              key: SYN_PWD
+        args:
+          - "--workspace=/siyuan/workspace/"
+          - "--accessAuthCode=$(SIYUAN_ACCESS_CODE)"
+        ports:
+        - containerPort: 6806
+          name: http
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+        volumeMounts:
+        - name: siyuan-storage
+          mountPath: /siyuan/workspace
+      volumes:
+      - name: siyuan-storage
+        persistentVolumeClaim:
+          claimName: siyuan-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: siyuan-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: siyuan
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 6806
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: siyuan-ingress
+  namespace: default
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  rules:
+  - host: siyuan.maybeit.work
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: siyuan-service
+            port:
+              number: 80
