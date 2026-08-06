@@ -40,6 +40,7 @@ spec:
                   name: siyuan-auth
                   key: SYN_PWD
           args:
+            - "serve"
             - "--workspace=/siyuan/workspace/"
             - "--accessAuthCode=$(SIYUAN_ACCESS_CODE)"
           ports:
