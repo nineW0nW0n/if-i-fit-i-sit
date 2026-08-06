@@ -104,6 +104,6 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: beszel-token
-                  key: TOKEN
+                  key: BESZEL_TKN
             - name: HUB_URL
               value: "http://beszel-service:8090"
