@@ -71,13 +71,13 @@ spec:
         - name: calcom
           image: calcom/cal.com:latest
           env:
-            - name: DATABASE_URL
-              value: postgresql://calcom:$(CAL_DB_PWD)@calcom-db:5432/calcom
             - name: CAL_DB_PWD
               valueFrom:
                 secretKeyRef:
                   name: calcom-secrets
                   key: CAL_DB_PWD
+            - name: DATABASE_URL
+              value: postgresql://calcom:$(CAL_DB_PWD)@calcom-db:5432/calcom
             - name: NEXTAUTH_SECRET
               valueFrom:
                 secretKeyRef:
