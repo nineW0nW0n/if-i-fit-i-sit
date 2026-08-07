@@ -1,9 +1,9 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: booking
 ---
-# 1. PostgreSQL Database
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,26 +20,26 @@ spec:
         app: calcom-db
     spec:
       containers:
-      - name: postgres
-        image: postgres:15-alpine
-        env:
-        - name: POSTGRES_USER
-          value: "calcom"
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: calcom-secrets
-              key: CAL_DB_PWD
-        - name: POSTGRES_DB
-          value: "calcom"
-        ports:
-        - containerPort: 5432
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "50m"
-          limits:
-            memory: "256Mi"
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_USER
+              value: calcom
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: calcom-secrets
+                  key: CAL_DB_PWD
+            - name: POSTGRES_DB
+              value: calcom
+          ports:
+            - containerPort: 5432
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -48,11 +48,10 @@ metadata:
   namespace: booking
 spec:
   ports:
-  - port: 5432
+    - port: 5432
   selector:
     app: calcom-db
 ---
-# 2. Cal.com Application Pod
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -69,37 +68,36 @@ spec:
         app: calcom
     spec:
       containers:
-      - name: calcom
-        image: calcom/cal.com:latest
-        env:
-        - name: DATABASE_URL
-          # Construct connection string dynamically using secret
-          value: "postgresql://calcom:$(CAL_DB_PWD)@calcom-db:5432/calcom"
-        - name: CAL_DB_PWD
-          valueFrom:
-            secretKeyRef:
-              name: calcom-secrets
-              key: CAL_DB_PWD
-        - name: NEXTAUTH_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: calcom-secrets
-              key: CAL_AUTH_KEY
-        - name: CALENDSO_ENCRYPTION_KEY
-          valueFrom:
-            secretKeyRef:
-              name: calcom-secrets
-              key: CAL_ENC_KEY
-        - name: NEXT_PUBLIC_WEBAPP_URL
-          value: "https://booking.maybeit.work"
-        ports:
-        - containerPort: 3000
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
+        - name: calcom
+          image: calcom/cal.com:latest
+          env:
+            - name: DATABASE_URL
+              value: postgresql://calcom:$(CAL_DB_PWD)@calcom-db:5432/calcom
+            - name: CAL_DB_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: calcom-secrets
+                  key: CAL_DB_PWD
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: calcom-secrets
+                  key: CAL_AUTH_KEY
+            - name: CALENDSO_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: calcom-secrets
+                  key: CAL_ENC_KEY
+            - name: NEXT_PUBLIC_WEBAPP_URL
+              value: https://booking.maybeit.work
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
 ---
 apiVersion: v1
 kind: Service
@@ -108,12 +106,11 @@ metadata:
   namespace: booking
 spec:
   ports:
-  - port: 3000
-    targetPort: 3000
+    - port: 3000
+      targetPort: 3000
   selector:
     app: calcom
 ---
-# 3. Traefik Ingress Route
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -123,13 +120,13 @@ metadata:
     ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-  - host: booking.maybeit.work
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: calcom-service
-            port:
-              number: 3000
+    - host: booking.maybeit.work
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: calcom-service
+                port:
+                  number: 3000
